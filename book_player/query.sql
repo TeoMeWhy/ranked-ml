@@ -127,11 +127,10 @@ tb_book_medal as (
             sum(case when descMedal = 'Membro Premium' then 1 else 0 end) as qtPremium,
             sum(case when descMedal = 'Membro Plus' then 1 else 0 end) as qtPlus,
             max( case when descMedal in ('Membro Premium', 'Membro Plus')
-                            and coalesce(dtRemove, dtExpiration) >= '{date}'
-                            then 1 else 0 end ) as AssinaturaAtiva
+                           and coalesce(dtRemove, dtExpiration) >= '{date}'
+                      then 1 else 0 end ) as AssinaturaAtiva
 
     from tb_medals
-
     group by idPlayer
 
 )
