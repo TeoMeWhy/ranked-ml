@@ -1,14 +1,19 @@
 # %%
+from types import MethodWrapperType
 import pandas as pd
 import sqlalchemy
+
+import matplotlib.pyplot as plt
 
 from sklearn import model_selection
 from sklearn import ensemble
 from sklearn import pipeline
+from sklearn import metrics
 
 from feature_engine import imputation
 from feature_engine import encoding
 
+import scikitplot as skplt
 
 pd.set_option('display.max_columns', None)
 # %%
@@ -74,7 +79,9 @@ onehot = encoding.OneHotEncoder(drop_last=True, variables=cat_features)
 
 # MODEL
 
-model = ensemble.RandomForestClassifier(n_estimators=200, min_samples_leaf=50)
+model = ensemble.RandomForestClassifier(n_estimators=200,
+                                        min_samples_leaf=20,                                        
+                                        n_jobs=-1)
 
 ## Definir um pipeline
 
@@ -86,3 +93,62 @@ model_pipe = pipeline.Pipeline(steps = [("Imput 0", imput_0),
 # %%
 
 model_pipe.fit(X_train, y_train)
+
+# %%
+
+
+## Assess
+y_train_pred = model_pipe.predict(X_train)
+y_train_prob = model_pipe.predict_proba(X_train)
+
+acc_train = round(100*metrics.accuracy_score(y_train, y_train_pred),2)
+roc_train = metrics.roc_auc_score(y_train, y_train_prob[:,1] )
+print("acc_train:", acc_train)
+print("roc_train:", roc_train)
+
+# %%
+
+print("Baseline: ", round((1-y_train.mean())*100,2))
+print("Acurácia:", acc_train)
+
+# %%
+
+y_test_pred = model_pipe.predict(X_test)
+y_test_prob = model_pipe.predict_proba(X_test)
+
+acc_test = round(100*metrics.accuracy_score(y_test, y_test_pred),2)
+roc_test = metrics.roc_auc_score(y_test, y_test_prob[:,1] )
+
+print("Baseline: ", round((1-y_test.mean())*100,2))
+print("acc_train:", acc_test)
+print("roc_train:", roc_test)
+
+# %%
+
+skplt.metrics.plot_roc(y_test, y_test_prob)
+plt.show()
+
+# %%
+
+skplt.metrics.plot_ks_statistic(y_test, y_test_prob)
+plt.show()
+
+# %%
+
+skplt.metrics.plot_precision_recall(y_test, y_test_prob)
+plt.show()
+
+# %%
+
+skplt.metrics.plot_lift_curve(y_test, y_test_prob)
+plt.show()
+
+# %%
+
+features_model = model_pipe[:-1].transform(X_train.head()).columns.tolist()
+
+fs_importance = pd.DataFrame({"importance":model_pipe[-1].feature_importances_,
+                              "feature":features_model})
+
+(fs_importance.sort_values("importance", ascending=False)
+              .head(20))
