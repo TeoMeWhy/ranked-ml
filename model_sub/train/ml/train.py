@@ -1,5 +1,4 @@
 # %%
-from types import MethodWrapperType
 import pandas as pd
 import sqlalchemy
 
@@ -7,6 +6,9 @@ import matplotlib.pyplot as plt
 
 from sklearn import model_selection
 from sklearn import ensemble
+from sklearn import tree
+from sklearn import linear_model
+
 from sklearn import pipeline
 from sklearn import metrics
 
@@ -79,27 +81,58 @@ onehot = encoding.OneHotEncoder(drop_last=True, variables=cat_features)
 
 # MODEL
 
-model = ensemble.RandomForestClassifier(n_estimators=200,
-                                        min_samples_leaf=20,                                        
-                                        n_jobs=-1)
+rf_clf = ensemble.RandomForestClassifier(n_estimators=200,
+                                         min_samples_leaf=20,                                        
+                                         n_jobs=-1,
+                                         random_state=42)
+
+ada_clf = ensemble.AdaBoostClassifier(n_estimators=200,
+                                      learning_rate=0.8,                                        
+                                      random_state=42)
+
+dt_clf = tree.DecisionTreeClassifier(max_depth=15,
+                                     min_samples_leaf=50,
+                                     random_state=42)
+
+rl_clf = linear_model.LogisticRegressionCV(cv=4, n_jobs=-1)
 
 ## Definir um pipeline
 
-model_pipe = pipeline.Pipeline(steps = [("Imput 0", imput_0),
-                                        ("Imput -1", imput_1),
-                                        ("One Hot", onehot),
-                                        ("Modelo", model)])
+params = {"n_estimators":[50,100,200,250],
+          "min_samples_leaf": [5,10,20,50,100] }
+
+grid_search = model_selection.GridSearchCV(rf_clf,
+                                           params,
+                                           n_jobs=1,
+                                           cv=4,
+                                           scoring='roc_auc',
+                                           verbose=3,
+                                           refit=True)
+
+pipe_rf = pipeline.Pipeline(steps = [("Imput 0", imput_0),
+                                     ("Imput -1", imput_1),
+                                     ("One Hot", onehot),
+                                     ("Modelo", grid_search)])
+
+
+# %%
+def train_test_report( model, X_train, y_train, X_test, y_test, key_metric, is_prob=True):
+    model.fit(X_train, y_train)
+    pred = model.predict(X_test)
+    prob = model.predict_proba(X_test)
+    metric_result = key_metric(y_test, prob[:,1]) if is_prob else key_metric(y_test, pred)
+    return metric_result
 
 # %%
 
-model_pipe.fit(X_train, y_train)
+pipe_rf.fit(X_train, y_train)
 
 # %%
 
 
 ## Assess
-y_train_pred = model_pipe.predict(X_train)
-y_train_prob = model_pipe.predict_proba(X_train)
+y_train_pred = pipe_rf.predict(X_train)
+y_train_prob = pipe_rf.predict_proba(X_train)
 
 acc_train = round(100*metrics.accuracy_score(y_train, y_train_pred),2)
 roc_train = metrics.roc_auc_score(y_train, y_train_prob[:,1] )
@@ -113,8 +146,8 @@ print("Acurácia:", acc_train)
 
 # %%
 
-y_test_pred = model_pipe.predict(X_test)
-y_test_prob = model_pipe.predict_proba(X_test)
+y_test_pred = pipe_rf.predict(X_test)
+y_test_prob = pipe_rf.predict_proba(X_test)
 
 acc_test = round(100*metrics.accuracy_score(y_test, y_test_pred),2)
 roc_test = metrics.roc_auc_score(y_test, y_test_prob[:,1] )
@@ -142,13 +175,50 @@ plt.show()
 
 skplt.metrics.plot_lift_curve(y_test, y_test_prob)
 plt.show()
+# %%
+
+skplt.metrics.plot_cumulative_gain(y_test, y_test_prob)
+plt.show()
+
 
 # %%
 
-features_model = model_pipe[:-1].transform(X_train.head()).columns.tolist()
+X_oot, y_oot = df_oot[features], df_oot[target]
 
-fs_importance = pd.DataFrame({"importance":model_pipe[-1].feature_importances_,
-                              "feature":features_model})
+y_prob_oot = pipe_rf.predict_proba(X_oot)
 
-(fs_importance.sort_values("importance", ascending=False)
-              .head(20))
+roc_oot = metrics.roc_auc_score(y_oot, y_prob_oot[:,1] )
+print("roc_train:", roc_oot)
+
+# %%
+skplt.metrics.plot_lift_curve(y_oot, y_prob_oot)
+plt.show()
+
+# %%
+skplt.metrics.plot_cumulative_gain(y_oot, y_prob_oot)
+plt.show()
+
+
+# %%
+
+df_oot['prob'] = y_prob_oot[:,1]
+
+# %%
+
+conv_model = (df_oot.sort_values(by=['prob'], ascending=False)
+                    .head(1000)
+                    .mean()["prob"])
+
+conv_sem = (df_oot.sort_values(by=['prob'], ascending=False)
+                  .mean()["prob"])
+
+total_model = (df_oot.sort_values(by=['prob'], ascending=False)
+                     .head(1000)
+                     .sum()["prob"])
+
+total_sem = (df_oot.sort_values(by=['prob'], ascending=False)
+                   .sum()["prob"])
+
+
+print(f"Total convertidos modelo {total_model} ({round(100*conv_model,2)}%)")
+print(f"Total convertidos SEM modelo {total_sem} ({round(100*conv_sem,2)}%)")
