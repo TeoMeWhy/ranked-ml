@@ -100,11 +100,11 @@ Faremos uso das seguintes bibliotecas:
 |---|:---:|:---:|
 | 1. Introdução **Machine Learning** e Definição do problema | 07.04.22 | [:link:](https://www.twitch.tv/videos/1448992935) |
 | 2. Criação do book de Variáveis - Parte I | 12.04.22 | [:link:](https://www.twitch.tv/videos/1453926596) |
-| 3. Criação do book de Variáveis - Parte II | 14.04.22 | |
-| 4. Criação da ABT (*Analytical Base Table*) | 19.04.22 | |
-| 5. SEMMA e primeiro pipeline | 21.04.22 | |
-| 6. Tunning do melhor modelo | 26.04.22 | |
-| 7. Deploy | 28.04.22 | |
+| 3. Criação do book de Variáveis - Parte II | 14.04.22 | [:link:](https://www.twitch.tv/videos/1457756298) |
+| 4. Criação da ABT (*Analytical Base Table*) | 19.04.22 | [:link:](https://www.twitch.tv/videos/1463586491) |
+| 5. SEMMA e primeiro pipeline | 21.04.22 | [:link:](https://www.twitch.tv/videos/1463586822) |
+| 6. Tunning do melhor modelo | 26.04.22 | [:link:](https://www.twitch.tv/videos/1469399340) |
+| 7. Deploy | 28.04.22 | [:link:](https://www.twitch.tv/videos/1469399912) |
 
 ## FAQ
 
