@@ -78,7 +78,7 @@ Para instalar o [Visual Studio Code](https://code.visualstudio.com/) basta reali
 
 ### 2. Dados
 
-Como vamos utilizar os dados da GC, você precisa baixar estes dados de nossa pasta no [google drive](https://drive.google.com/file/d/1TfGfhwm7tnfaQnAKDNSEezggYemDxdUR/view?usp=sharing).
+Como vamos utilizar os dados da GC, você precisa baixar estes dados de nossa pasta no [google drive](https://drive.google.com/file/d/1QR53whL3BCj6W9zawjMhGhFog-FbAySP/view?usp=sharing).
 
 ### 3. Conhecimentos técnicos
 
